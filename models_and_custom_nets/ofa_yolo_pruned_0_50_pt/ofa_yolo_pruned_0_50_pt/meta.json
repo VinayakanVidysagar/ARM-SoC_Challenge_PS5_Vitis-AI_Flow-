@@ -1,0 +1,8 @@
+{
+    "lib": "libvart-dpu-runner.so",
+    "filename": "ofa_yolo_pruned_0_50_pt.xmodel",
+    "kernel": [
+        "subgraph_ofa_yolo_50__model_module_0_bias"
+    ],
+    "target": "DPUCZDX8G_ISA1_B4096"
+}
