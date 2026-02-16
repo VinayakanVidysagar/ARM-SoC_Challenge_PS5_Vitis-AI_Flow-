@@ -21,11 +21,7 @@ From a power and performance standpoint, the Zynq UltraScale+ MPSoC uses a 16nm 
 
 Overall, the ZCU104 MPSoC platform provides a balanced combination of general-purpose processing, real-time control capability, GPU support, and highly parallel programmable logic resources. This makes it an ideal development platform for applications such as real-time object detection, instance segmentation, embedded vision, robotics, industrial automation, and AI acceleration using Vitis AI and DPU-based architectures.
 
-**Deep-Learning Processor Unit**
 
-The Deep-learning Processor Unit (DPU) is a programmable engine optimized for deep neural networks. The DPU implements an efficient tensor-level instruction set designed to support and accelerate various popular convolutional neural networks, such as VGG, ResNet, GoogLeNet, YOLO, SSD, and MobileNet, among others.
-The DPU supports on AMD Zynq™ UltraScale+™ MPSoCs, the Kria™ KV260, Versal™ and Alveo cards. It scales to meet the requirements of many diverse applications in terms of throughput, latency, scalability, and power.
-AMD provides pre-built platforms integrating the DPU engine for both edge and data-center cards. These pre-built platforms allow data-scientists to start developping and testing their models without any need for HW development expertise.
 
 # **Vitis AI Model Zoo**
 **Model Zoo Details and Performance**
@@ -80,8 +76,15 @@ Key components include:
 In early layers, convolutional filters typically detect low-level features (edges, gradients). In deeper layers (as in ResNet), filters capture higher-level semantic features such as object parts or entire object representations.
 ResNet represents a structural breakthrough in deep learning architecture design. While earlier CNNs like AlexNet demonstrated the power of convolutional hierarchies and VGGNet emphasized depth, ResNet provided the mathematical and architectural mechanism necessary to train extremely deep networks effectively. The introduction of residual connections not only improved classification accuracy but also became a foundational concept influencing modern architectures, including DenseNet, EfficientNet, and transformer-based vision models.
 # DPU IP Details and System Integration
+
+**Deep-Learning Processor Unit**
+
+The Deep-learning Processor Unit (DPU) is a programmable engine optimized for deep neural networks. The DPU implements an efficient tensor-level instruction set designed to support and accelerate various popular convolutional neural networks, such as VGG, ResNet, GoogLeNet, YOLO, SSD, and MobileNet, among others.
+The DPU supports on AMD Zynq™ UltraScale+™ MPSoCs, the Kria™ KV260, Versal™ and Alveo cards. It scales to meet the requirements of many diverse applications in terms of throughput, latency, scalability, and power.
+
 **About the DPU IP**
 
+AMD provides pre-built platforms integrating the DPU engine for both edge and data-center cards. These pre-built platforms allow data-scientists to start developping and testing their models without any need for HW development expertise.
 AMD uses the acronym D-P-U to identify soft accelerators that target deep-learning inference. These “D eep Learning P rocessing U nits” are a vital component of the Vitis AI solution. This (perhaps overloaded) term can refer to one of several potential accelerator architectures covering multiple network topologies.
 A DPU comprises elements available in the AMD programmable logic fabric, such as DSP, BlockRAM, UltraRAM, LUTs, and Flip-Flops, or may be developed as a set of microcoded functions that are deployed on the AMD AI Engine, or “AI Engine” architecture. Furthermore, in the case of some applications, the DPU is likely to be comprised of programmable logic and AI Engine array resources.
 An example of the DPUCZ, targeting Zynq™ Ultrascale+™ devices is displayed in the following image:
