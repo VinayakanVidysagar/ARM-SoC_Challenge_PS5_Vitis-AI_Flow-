@@ -1,379 +1,144 @@
-# **Install Docker**
+# Vitis AI
 
-Docker is used in this project to support the AMD Vitis AI toolchain, which is responsible for model quantization and compilation for deployment on the DPU. The Vitis AI environment requires a tightly controlled combination of software dependencies, including specific versions of Python, CUDA, deep-learning frameworks (TensorFlow/PyTorch), and supporting libraries. Installing and maintaining these dependencies directly on the host system can lead to version conflicts and instability, especially when multiple FPGA toolchains and software environments coexist. By using Docker, the Vitis AI tools are executed within a pre-validated and isolated container environment provided by AMD, ensuring compatibility with Vitis 2022.2 and preventing interference with other installed tools such as Vivado or earlier Vitis versions. Additionally, Docker enables seamless access to GPU acceleration during quantization and optimization stages, while maintaining a clean and reproducible workflow. This approach improves toolchain reliability and repeatability without affecting the final deployment, as the trained and compiled models are ultimately executed on the DPU hardware rather than inside the container.
+AMD Vitis™ AI is an integrated development environment that can be leveraged to accelerate AI inference on AMD platforms. This toolchain provides optimized IP, tools, libraries, models, as well as resources, such as example designs and tutorials that aid the user throughout the development process. It is designed with high efficiency and ease-of-use in mind, unleashing the full potential of AI acceleration on AMD Adaptable SoCs and Alveo Data Center accelerator cards.
 
-Make sure that the Docker engine is installed according to the official Docker documentation.
-    • The Docker daemon always runs as the root user. Non-root users must be added to the docker group. Do this now.
+
+The Vitis™ AI solution consists of three primary components:
+    • The Deep-Learning Processor unit (DPU), a hardware engine for optimized the inferencing of ML models
+    • Model development tools, to compile and optimize ML models for the DPU
+    • Model deployment libraries and APIs, to integrate and execute the ML models on the DPU engine from a SW application
+# About ZCU104 MP-SoC Evaluation Board
+
+The ZCU104 Evaluation Board is built around the Xilinx Zynq UltraScale+ MPSoC, specifically the XCZU7EV device, which integrates a heterogeneous processing system with programmable logic on a single silicon die. This architecture combines a quad-core ARM Cortex-A53 application processing unit, a dual-core ARM Cortex-R5 real-time processing unit, and a Mali-400 MP2 GPU within the Processing System (PS), tightly coupled with high-performance FPGA fabric in the Programmable Logic (PL). This heterogeneous integration enables hardware–software co-design, allowing computationally intensive tasks such as deep learning acceleration to be offloaded to the PL while system control and application software execute on the ARM cores.
+
+The ZCU104 provides substantial programmable logic resources, including hundreds of thousands of logic cells, DSP slices optimized for multiply–accumulate operations, block RAM (BRAM), and UltraRAM, making it highly suitable for implementing accelerators such as the Deep Learning Processing Unit (DPU). The presence of dedicated DSP48E2 slices enhances performance for convolution-heavy workloads, while on-chip memory resources reduce external memory bandwidth dependency and improve latency.
+
+In terms of memory architecture, the board supports DDR4 memory connected to both the Processing System and Programmable Logic, enabling high-bandwidth data movement for AI inference, video processing, and signal processing applications. The MPSoC architecture also includes high-performance AXI interfaces that facilitate low-latency communication between PS and PL domains, which is critical for deploying Vitis AI–based acceleration pipelines.
+
+The ZCU104 features rich high-speed connectivity options, including PCIe, DisplayPort, USB 3.0, Gigabit Ethernet, FMC connectors, and multiple MIPI interfaces. These interfaces enable integration with cameras, sensors, storage devices, and external accelerators. The board also includes SD card boot support, UART for serial debugging, and JTAG for hardware development and debugging, making it suitable for both prototyping and production-level validation.
+
+From a power and performance standpoint, the Zynq UltraScale+ MPSoC uses a 16nm FinFET process technology, offering improved energy efficiency compared to earlier FPGA generations. This makes the ZCU104 particularly attractive for edge AI applications where performance-per-watt is a critical constraint. The integrated security features, including secure boot, hardware root of trust, and cryptographic acceleration, make it suitable for secure embedded deployments.
+
+Overall, the ZCU104 MPSoC platform provides a balanced combination of general-purpose processing, real-time control capability, GPU support, and highly parallel programmable logic resources. This makes it an ideal development platform for applications such as real-time object detection, instance segmentation, embedded vision, robotics, industrial automation, and AI acceleration using Vitis AI and DPU-based architectures.
+
+**Deep-Learning Processor Unit**
+
+The Deep-learning Processor Unit (DPU) is a programmable engine optimized for deep neural networks. The DPU implements an efficient tensor-level instruction set designed to support and accelerate various popular convolutional neural networks, such as VGG, ResNet, GoogLeNet, YOLO, SSD, and MobileNet, among others.
+The DPU supports on AMD Zynq™ UltraScale+™ MPSoCs, the Kria™ KV260, Versal™ and Alveo cards. It scales to meet the requirements of many diverse applications in terms of throughput, latency, scalability, and power.
+AMD provides pre-built platforms integrating the DPU engine for both edge and data-center cards. These pre-built platforms allow data-scientists to start developping and testing their models without any need for HW development expertise.
+
+# **Vitis AI Model Zoo**
+**Model Zoo Details and Performance**
+All the models in the Model Zoo are deployed on AMD adaptable hardware with Vitis AI and the Vitis AI Library. The performance benchmark data includes end-to-end throughput and latency for each model, targeting various boards with varied DPU configurations.
+To make the job of using the Model Zoo a little easier, we have provided a downloadable spreadsheet and an online table that incorporates key data about the Model Zoo models. The spreadsheet and tables include comprehensive information about all models, including links to the original papers and datasets, source framework, input size, computational cost (GOPs), and float and quantized accuracy. 
+The Vitis AI Model Zoo includes optimized deep learning models to speed up the deployment of deep learning inference on adaptable AMD platforms. 
+
+# **Resnet**
+
+ResNet (Residual Network), introduced by researchers at Microsoft Research in 2015, fundamentally addressed one of the most critical challenges in deep learning: the degradation problem in very deep neural networks. As convolutional neural networks (CNNs) became deeper, it was observed that simply stacking more layers did not necessarily improve accuracy; instead, training error often increased due to vanishing gradients and optimization difficulties. ResNet proposed a novel architectural concept called residual learning, where instead of learning a direct mapping H(x), the network learns a residual function 
+```
+F(x)=H(x)−x.
+```
+This is implemented through skip connections (identity shortcuts) that bypass one or more layers and add the input directly to the output of stacked convolutional layers. Mathematically, the block output becomes y=F(x)+x, ensuring that gradients can flow directly through identity paths during backpropagation. This significantly stabilizes training and enables extremely deep architectures such as ResNet-50, ResNet-101, and ResNet-152.
+
+The architectural backbone of ResNet consists of stacked residual blocks, each typically containing two or three convolutional layers followed by batch normalization and ReLU activation. In deeper variants (like ResNet-50 and beyond), a bottleneck design (1×1 → 3×3 → 1×1 convolutions) is used to reduce computational complexity while preserving representational power. This design makes ResNet computationally efficient despite its depth.
+
+Advantages of ResNet Over Other Classification Models
+When compared with earlier architectures such as VGGNet and AlexNet, ResNet offers several fundamental improvements:
     
-**Verify Docker Installation**
+1. Elimination of Degradation Problem
+Traditional deep CNNs suffer from performance saturation and degradation as depth increases. ResNet’s identity shortcut allows the model to approximate an identity mapping easily, ensuring that deeper networks perform at least as well as their shallower counterparts.
 
-```
-[Host] $ docker run hello-world
-```
-**Pull Vitis AI Docker**
+2. Improved Gradient Flow
+Skip connections create direct gradient pathways, mitigating the vanishing gradient issue common in very deep networks. This enables stable training of networks exceeding 100 layers.
 
-In order to simplify this quickstart tutorial, we will utilize the Vitis-AI PyTorch CPU Docker to assess pre-built Vitis-AI examples, and subsequently perform quantization and compilation of our own model. The CPU docker image is generic, does not require the user to build the container, and has no specific GPU enablement requirements. 
-Setup the Host
-It will be useful to you later on to have the cross-compiler installed. This will allow you to compile target application code on your host machine inside Docker. Run the following commands to install the cross-compilation environment.
-```
-[Host] $ cd Vitis-AI/board_setup/mpsoc
-[Host] $ sudo chmod u+r+x host_cross_compiler_setup.sh
-[Host] $ ./host_cross_compiler_setup.sh
-```
-When the installation is complete, follow the prompts and execute the following command:
-```
-[Host] $ source ~/petalinux_sdk_2022.2/environment-setup-cortexa72-cortexa53-xilinx-linux
-```
-We are now ready to run the Docker container and cross compile one of the target applications. Notice that the /workspace directory in Docker corresponds to your /Vitis-AI directory on the host. Thus you will note that [Docker] /workspace/examples/vai_runtime/resnet50_pt = [Host] Vitis-AI/examples/vaiexamples/vai_runtime/resnet50_pt.
-```
-[Host]   $ cd ../..
-[Host]   $ ./docker_run.sh xilinx/vitis-ai-pytorch-cpu:latest
-```
-Activate the vitis-ai-pytorch conda enviornment.
-```
-[Docker] $ conda activate vitis-ai-pytorch
-```
-Cross compile the resnet example.
-```
-[Docker] $ cd examples/vai_runtime/resnet50_pt
-[Docker] $ bash –x build.sh
-```
-If the compilation process does not report an error and the executable file resnet50_pt is generated, then the host environment is installed correctly. If an error is reported, double-check that you executed the source ~/petalinux.... command.
+3. Better Generalization
+Residual learning encourages feature refinement rather than complete feature re-learning at each layer. This leads to improved generalization on large-scale datasets such as ImageNet.
 
-Note: This is just to check whether the docker and the vitis -ai is installed properlly on the host environement.
-Setup the Target
+4. Computational Efficiency (in Bottleneck Versions)
+Compared to VGGNet, which relies heavily on large stacks of 3×3 convolutions with high parameter counts, ResNet-50 achieves superior accuracy with significantly fewer parameters and lower computational overhead.
 
-The Vitis AI Runtime packages, VART samples, Vitis-AI-Library samples, and models are built into the board image, enhancing the user experience. Therefore, the user need not install Vitis AI Runtime packages and model packages on the board separately.
+5. Transfer Learning Superiority
+Due to its deep hierarchical feature extraction and stable training behavior, ResNet has become one of the most widely adopted backbone networks in detection and segmentation frameworks such as Faster R-CNN and Mask R-CNN.
 
-# Setting up the FPGA
+6. Scalability
+The residual block is modular. Depth can be increased systematically without architectural redesign, unlike earlier CNNs where deeper models required careful manual tuning.
+In essence, ResNet shifted the paradigm from simply “increasing depth” to “enabling depth through identity mapping,” making ultra-deep learning practically feasible.
+Convolution Layer – Conceptual Understanding
 
-1. Make the target / host connections as shown in the images below. Plug in the power adapter, ethernet cable, and a DisplayPort monitor (optional) and connect the USB-UART interface to the host. If one is available, connect a USB webcam to the target.
-
-Note
-For ZCU102 and ZCU104, please use a display port monitor and reference the respective user guide to configure the target jumper and switch settings to factory defaults. For both the ZCU102 and ZCU104, set Mode SW6 [4:1] = [OFF, OFF, OFF, ON] to boot from SD card.
+A convolution layer is the fundamental building block of CNN architectures like ResNet. It operates by applying a small learnable kernel (e.g., 3×3 or 5×5) across the spatial dimensions of the input image. This kernel performs an element-wise multiplication followed by summation, generating a feature map that captures local spatial patterns such as edges, textures, or shapes.
+If the input image is represented as X and the kernel as K, the convolution operation at spatial location (i,j) can be expressed as:
+```
+Y(i,j)=m∑​n∑​X(i+m,j+n)⋅K(m,n)
+```
+Key components include:
+    • Stride: Controls how much the filter shifts.
+    • Padding: Preserves spatial dimensions.
+    • Number of Filters: Determines output depth (feature channels).
 
 
+In early layers, convolutional filters typically detect low-level features (edges, gradients). In deeper layers (as in ResNet), filters capture higher-level semantic features such as object parts or entire object representations.
+ResNet represents a structural breakthrough in deep learning architecture design. While earlier CNNs like AlexNet demonstrated the power of convolutional hierarchies and VGGNet emphasized depth, ResNet provided the mathematical and architectural mechanism necessary to train extremely deep networks effectively. The introduction of residual connections not only improved classification accuracy but also became a foundational concept influencing modern architectures, including DenseNet, EfficientNet, and transformer-based vision models.
+# DPU IP Details and System Integration
+**About the DPU IP**
+
+AMD uses the acronym D-P-U to identify soft accelerators that target deep-learning inference. These “D eep Learning P rocessing U nits” are a vital component of the Vitis AI solution. This (perhaps overloaded) term can refer to one of several potential accelerator architectures covering multiple network topologies.
+A DPU comprises elements available in the AMD programmable logic fabric, such as DSP, BlockRAM, UltraRAM, LUTs, and Flip-Flops, or may be developed as a set of microcoded functions that are deployed on the AMD AI Engine, or “AI Engine” architecture. Furthermore, in the case of some applications, the DPU is likely to be comprised of programmable logic and AI Engine array resources.
+An example of the DPUCZ, targeting Zynq™ Ultrascale+™ devices is displayed in the following image:
+ 
+**Features and Architecture of the Zynq Ultrascale+ DPUCZ**
+Vitis AI provides the DPU IP and the required tools to deploy both standard and custom neural networks on AMD adaptable targets:
+Vitis AI DPUs are general-purpose AI inference accelerators. A single DPU instance in your design can enable you to deploy multiple CNNs simultaneously and process multiple streams simultaneously. The Processing depends on the DPU having sufficient parallelism to support the combination of the networks and the number of streams. Multiple DPU instances can be instantiated per device. The DPU can be scaled in size to accommodate the requirements of the user.
+
+The Vitis AI DPU architecture is called a “Matrix of (Heterogeneous) Processing Engines.” While on the surface, Vitis AI DPU architectures have some visual similarity to a systolic array; the similarity ends there. DPU is a micro-coded processor with its Instruction Set Architecture. Each DPU architecture has its own instruction set, and the Vitis AI Compiler compiles an executable .Xmodel to deploy for each network. The DPU executes the compiled instructions in the .Xmodel. The Vitis AI Runtime addresses the underlying tasks of scheduling the inference of multiple networks, multiple streams, and even multiple DPU instances. The mix of processing engines in the DPU is heterogeneous, with the DPU having different engines specialized for different tasks. For instance, CONV2D operators are accelerated in a purpose-built PE, while another process depthwise convolutions.
+
+You might ask that why not go with the traditional hls4ml or FINN Flow why go on with the Vitis-AI workflow why is this prefered
+One advantage of this architecture is that there is no need to load a new bitstream or build a new hardware platform while changing the network. This is an important differentiator from Data Flow accelerator architectures that are purpose-built for a single network. That said, both the Matrix of Processing Engines and Data Flow architectures have a place in AMD designs. 
+
+**Vitis AI DPU IP and Reference Designs**
+
+Today, AMD DPU IPs are not incorporated into the standard Vivado™ IP catalog and instead, the DPU IP is released embedded in a reference design. Users can start with the reference design and modify it to suit their requirements. The reference designs are fully functional and can be used as a template for IP integration and connectivity as well as Linux integration.
+The DPU IP is also is released as a separate download that can be incorporated into a new or existing design by the developer.
+DPU Nomenclature
+There are a variety of different DPUs available for different tasks and AMD platforms. The following decoder helps extract the features, characteristics, and target hardware platforms from a given DPU name.
+ 
+**Historic DPU Nomenclature**
+As of the Vitis™ 1.2 release, the historic DPUv1/v2/v3 nomenclature was deprecated. To better understand how these historic DPU names map into the current nomenclature, refer to the following table:
+ 
+**DPU Options**
+**Zynq™ UltraScale+™ MPSoC: DPUCZDX8G**
+The DPUCZDX8G IP has been optimized for Zynq UltraScale+ MPSoC. You can integrate this IP as a block in the programmable logic (PL) of the selected Zynq UltraScale+ MPSoCs with direct connections to the processing system (PS). The DPU is user-configurable and exposes several parameters which can be specified to optimize PL resources or customize enabled features.
 
 
+**Zynq UltraScale＋ MPSoC DPU TRD**
+The Xilinx Deep Learning Processor Unit(DPU) is a configurable computation engine dedicated for convolutional neural networks. The degree of parallelism utilized in the engine is a design parameter and application. It includes a set of highly optimized instructions, and supports most convolutional neural networks, such as VGG, ResNet, GoogleNet, YOLO, SSD, MobileNet, FPN, and others.
+Features
+    • One AXI slave interface for accessing configuration and status registers.
+    • One AXI master interface for accessing instructions.
+    • Supports configurable AXI master interface with 64 or 128 bits for accessing data depending on the target device.
+    • Supports individual configuration of each channel.
+    • Supports optional interrupt request generation.
+    • Some highlights of DPU functionality include:
+        ◦ Configurable hardware architecture includes: B512, B800, B1024, B1152, B1600, B2304, B3136, and B4096 
+        ◦ Maximum of three cores 
+        ◦ Convolution and deconvolution 
+        ◦ Depthwise convolution 
+        ◦ Max poolling 
+        ◦ Average poolling 
+        ◦ ReLU, RELU6, Leaky ReLU, Hard Sigmoid, and Hard Swish 
+        ◦ Concat 
+        ◦ Elementwise-sum and Elementwise-multiply 
+        ◦ Dilation 
+        ◦ Reorg 
+        ◦ Correlation 1D and 2D 
+        ◦ Argmax and Max along channel dimension 
+        ◦ Fully connected layer 
+        ◦ Softmax 
+        ◦ Bach Normalization 
+        ◦ Split 
+        
+**Hardware Architecture**
+The detailed hardware architecture of the DPU is shown in the following figure. After start-up, the DPU fetches instructions from off-chip memory to control the operation of the computing engine. The instructions are generated by the DNNC where substantial optimizations have been performed. On-chip memory is used to buffer input, intermediate, and output data to achieve high throughput and efficiency. The data is reused as much as possible to reduce the memory bandwidth. A deep pipelined design is used for the computing engine. The processing elements (PE) take full advantage of the finegrained building blocks such as multipliers, adders and accumulators in Xilinx devices.
 
+There are three dimensions of parallelism in the DPU convolution architecture - pixel parallelism, input channel parallelism, and output channel parallelism. The input channel parallelism is always equal to the output channel parallelism. The different architectures require different programmable logic resources. The larger architectures can achieve higher performance with more resources. The parallelism for the different architectures is listed in the table.
 
-
-
-
-
-
-
-
-
-
-
-Source: Xilinx Github repo for ultrascale+ devices
-
-2. Download the Vitis AI pre-built SD card image from the appropriate link:
-
-https://www.xilinx.com/member/forms/download/design-license-xef.html?filename=xilinx-zcu104-dpu-v2022.2-v3.0.0.img.gz
-
-3. Set up the SD Card
-
-4. Use BalenaEtcher to burn the image file onto the SD card.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Insert the imaged SD card into the target and power up the board.
-    4. Multiple consecutive UART ports will be enumerated (ie COM13,14,15,16). Connect the serial terminal application of choice to the lowest of the consecutive ports (ie 13), using the parameters listed below.
-        ◦ Baud Rate: 115200
-        ◦ Data Bit: 8
-        ◦ Stop Bit: 1
-        ◦ No Parity
-5. The IP address for the target can be found with the command below.
-```
-[Target] $ ifconfig
-```
- 6. If you are using a point-to-point connection or DHCP is not available, you can manually set the IP address:
-```
-[Target] $ ifconfig eth0 [TARGET_IP_ADDRESS]
-```
-7. Next, connect to the board via SSH. The password is ‘root’
-```
-[Host] $ ssh -X root@[TARGET_IP_ADDRESS]
-```
-8. If you have not connected a DisplayPort monitor, it is recommended that you export the display. If you do not do so, the examples will not run as expected.
-```
-[Target] $ export DISPLAY=[HOST_IP_ADDRESS]:0.0
-```
-9. Download the model.
-You can now select a model from the Vitis AI Model Zoo Vitis AI Model Zoo. Navigate to the model-list subdirectory and select the model that you wish to test. For each model, a YAML file provides key details of the model. In the YAML file there are separate hyperlinks to download the model for each supported target. Choose the correct link for your target platform and download the model.
-    
-1. Take the ResNet50 model as an example.
-```
-[Host] $ cd /workspace
-[Host] $ wget https://www.xilinx.com/bin/public/openDownload?filename=resnet50-zcu102_zcu104_kv260-r3.0.0.tar.gz -O resnet50-zcu102_zcu104_kv260-r3.0.0.tar.gz
-```
-3. Copy the downloaded file to the target using scp with the following command:
-```
-[Host] $ scp resnet50-zcu102_zcu104_kv260-r3.0.0.tar.gz root@[TARGET_IP_ADDRESS]:~/
-```
-4. Install the model package:
-```
-[Target] $ tar -xzvf resnet50-zcu102_zcu104_kv260-r3.0.0.tar.gz
-[Target] $ cp resnet50 /usr/share/vitis_ai_library/models -r
-```
-
-# **Run the Vitis AI Examples**
-
-1. Download vitis_ai_runtime_r3.0.0_image_video.tar.gz to your host, and copy the file to the the target using scp:
-```
-[Host] $ scp vitis_ai_runtime_r3.0.0_image_video.tar.gz root@[TARGET_IP_ADDRESS]:~/
-```
-3. Extract the vitis_ai_runtime_r3.0.0_image_video.tar.gz package on the target.
-```
-[Target] $ cd ~
-[Target] $ tar -xzvf vitis_ai_runtime_r3.0.0_image_video.tar.gz -C Vitis-AI/examples/vai_runtime
-```
-3. Navigate to the example directory on the target. Take resnet50 as an example.
-```
-[Target] $ cd ~/Vitis-AI/examples/vai_runtime/resnet50
-```
-4. Run the example.
-```
-[Target] $ ./resnet50 /usr/share/vitis_ai_library/models/resnet50/resnet50.xmodel
-```
-5. An image should appear on the display connected to the target and the console should reflect the following output:
-```
-Image : 001.jpg
-top[0] prob = 0.982662  name = brain coral
-top[1] prob = 0.008502  name = coral reef
-top[2] prob = 0.006621  name = jackfruit, jak, jack
-top[3] prob = 0.000543  name = puffer, pufferfish, blowfish, globefish
-top[4] prob = 0.000330  name = eel
-```
-These results reflect the classification of a single test image located in the ~/Vitis-AI/examples/vai_library/images directory.
-
-# **PyTorch Tutorial**
-
-This tutorial assumes that Vitis AI has been installed and that the board has been configured as explained in the installation instructions above. For additional information on the Vitis AI Quantizer, Optimizer, or Compiler, please refer to the Vitis AI User Guide.
-Quantizing the Model
-Quantization reduces the precision of network weights and activations to optimize memory usage and computational efficiency while maintaining acceptable levels of accuracy. Inference is computationally expensive and requires high memory bandwidths to satisfy the low-latency and high-throughput requirements of Edge applications. Quantization and channel pruning techniques are employed to address these issues while achieving high performance and high energy efficiency with little degradation in accuracy. The Vitis AI Quantizer takes a floating-point model as an input and performs pre-processing (folds batchnorms and removes nodes not required for inference), and finally quantizes the weights/biases and activations to the given bit width.
-1. Navigate to the cloned Vitis-AI directory and create a new workspace for your project. Here you will store the test dataset, models, and python scripts required for quantization.
-```
-[Host] $ cd ~/Vitis-AI
-[Host] $ mkdir -p resnet18/model
-```
-2. Download the ImageNet 1000 (mini) dataset from Kaggle. This dataset is subset of the ILSVRC 2012-2017 dataset and comprises 1000 object classes, and contains 1,281,167 training, 50,000 validation, and 100,000 test images. You will need to create a Kaggle account to access this dataset. Move the downloaded archive.zip file into the created /Vitis-AI/resnet18 folder and unzip the dataset.
-```
-[Host] $ cd resnet18
-[Host] $ unzip archive.zip
-```
-Your workspace directory should reflect the following:
-```      
-├── archive.zip
-│
-├── model
-│
-└── imagenet-mini
-        ├── train                    # Training images folder. Will not be used in this tutorial.
-        │   └─── n01440764           # Class folders to group images.
-        └── val                      # Validation images that will be used for quantization and evaluation of the floating point model.
-            └─── n01440764
-```
-3. Navigate to the Vitis-AI directory and execute the following command to start Docker.
-```      
-[Host] $ cd ..
-[Host] ./docker_run.sh xilinx/vitis-ai-pytorch-cpu:latest
-```
-• Note that when you start Docker appropriate as shown above, your /workspace folder will correspond to /Vitis-AI and your initial path in Docker will be /workspace. If you inspect docker_run.sh you can see that the -v option is leveraged which links the Docker file system to your Host file system. Verify that you see the created /resnet18 subfolder in your workspace:
-```      
-[Docker] $ ls
-```
-4. Download the pre-trained resnet18 model from PyTorch to the docker environment and store it in the model folder . This is the floating point (FP32) model that will be quantized to INT8 precision for deployment on the target.
-```       
-[Docker] $ cd resnet18/model
-[Docker] $ wget https://download.pytorch.org/models/resnet18-5c106cde.pth -O resnet18.pth
-```
-Note
-The Vitis AI Model Zoo also provides optimized deep learning models to speed up the deployment of deep learning inference on adaptable AMD platforms. For this tutorial we have chosen to use an open-source PyTorch model to showcase that models from the community can also be deployed.
-
-5. Copy the example Vitis AI ResNet18 quantization script to your workspace. This script contains the Quantizer API calls that will be executed in order to quantize the model.
-```
-[Docker] $ cd ..
-[Docker] $ cp ../src/vai_quantizer/vai_q_pytorch/example/resnet18_quant.py ./
-```
-• Your workspace/resnet18 directory should reflect the following:
-```
-├── archive.zip
-│
-├── model
-│   └── resnet18.pth             # ResNet18 floating point model downloaded from PyTorch.
-│
-├── imagenet-mini
-│   ├── train                    # Training images folder. Will not be used in this tutorial.
-│   │   └─── n01440764           # Class folders to group images.
-│   └── val                      # Validation images that will be used for quantization and evaluation of the floating point model.
-│       └─── n01440764
-│
-└── resnet18_quant.py            # Quantization python script.
-```
- • Inspect resnet18_quant.py. Observe the parser arguments that can be passed to the script via command line switches subset_len quant_mode data_dir and model_dir. We will set the data_dir and model_dir arguments to align with our directory structure. If you wish to avoid extraneous typing and are manually entering these commands, you can simply edit the script to suit your use case.
-```
-[Docker] $ vim resnet18_quant.py
-```
-Note on Vim 
-To edit in Vim, open a file with 
-vim filename, press i to enter Insert mode for typing, use Esc to return to Normal mode for commands like h/j/k/l to navigate, and use :wq (or ZZ) to save and exit, mastering these modes (Normal, Insert, Command) is the key to its powerful editing. 
-
-• Use the sequence <esc> :q! to exit vim without saving.
-6. Run the command below to evaluate the accuracy of the floating point model.
-```
-[Docker] $ python resnet18_quant.py --quant_mode float --data_dir imagenet-mini --model_dir model
-```
-• You should observe that the accuracy reported is similar to top-1 / top-5 accuracy: 69.9975 / 88.7586
-7. Next, let’s run the Model Inspector to confirm that this model should be compatible with the target DPU architecture.
-```
-[Docker] $ python resnet18_quant.py --quant_mode float --inspect --target DPUCZDX8G_ISA1_B4096 --model_dir model
-```
-8. Run the command below to start quantization. Generally, 100-1000 images are required for quantization and the number of iterations can be controlled through the the subset_len data loading argument. In this case, 200 images are forward propagated through the network, and these images are chosen randomly from the validation image set. Note that the displayed loss and accuracy that are output from this process are not representative of final model accuracy.
-```       
-[Docker] $ python resnet18_quant.py --quant_mode calib --data_dir imagenet-mini --model_dir model --subset_len 200
-```
-• On most host machines this command should complete in less than 1 minute even with the CPU-only Docker. If you leverage the CUDA or ROCm Dockers on a compatible machine, the Quantization process will be accelerated considerably. Let’s take a look at the output:
-```      
-[Docker] $ cd quantize_result
-[Docker] $ ls
-```
-• If the command ran successfully, the output directory quantize_result will be generated, containing two important files:
-      -ResNet.py
-      The quantized vai_q_pytorch format model.
-      -Quant_info.json
-      Quantization steps of tensors. Retain this file for evaluation of the quantized model.
-      
-9. To evaluate the accuracy of the quantized model, return to the /resnet18 directory run the following commands. Note that on CPU-only host machines this command will take some time to complete (~20 minutes). If you are in a hurry, you can skip this step and move to the next.
- ```      
-[Docker] $ cd ..
-[Docker] $ python resnet18_quant.py --model_dir model --data_dir imagenet-mini --quant_mode test
-```
-You should observe that the accuracy reported will be similar to top-1 / top-5 accuracy: 69.1308 / 88.7076. The net accuracy loss due to quantization is less than 1%.
-
-10. To generate the quantized .xmodel file that will subsequently be compiled for the DPU, run the following command with batch_size and subset_len arguments set to 1. For model export, both of these parameters should be set 1 as multiple iterations are not required.
-```     
-[Docker] $ python resnet18_quant.py --quant_mode test --subset_len 1 --batch_size=1 --model_dir model --data_dir imagenet-mini --deploy
-```
-The resultant model resnet18_pt.xmodel can now be found in the resnet18/resnet18_pt folder.
-To view the entire log of my Run click here 
-
-
-# **Compile the model**
-
-The Vitis AI Compiler compiles the graph operators as a set of micro-coded instructions that are executed by the DPU. In this step, we will compile the ResNet18 model that we quantized in the previous step.
-
-1. The compiler takes the quantized INT8.xmodel and generates the deployable DPU.xmodel by running the command below. Note that you must modify the command to specify the appropriate arch.json file for your target. For MPSoC targets, these are located in the folder /opt/vitis_ai/compiler/arch/DPUCZDX8G inside the Docker container.
-```
-[Docker] $ cd /workspace/resnet18
-[Docker] $ vai_c_xir -x quantize_result/ResNet_int.xmodel -a /opt/vitis_ai/compiler/arch/DPUCZDX8G/<Target ex>/arch.json -o resnet18_pt -n resnet18_pt
-```
-If compilation is successful, the resnet18_pt.xmodel file should be generated according to the specified DPU architecture.
-
-2. Create a new file with your text editor of choice and name the file resnet18_pt.prototxt. Copy and paste the following lines of code:
-```
-model {
-   name : "resnet18_pt"
-   kernel {
-         name: "resnet18_pt_0"
-         mean: 103.53
-         mean: 116.28
-         mean: 123.675
-         scale: 0.017429
-         scale: 0.017507
-         scale: 0.01712475
-   }
-   model_type : CLASSIFICATION
-   classification_param {
-          top_k : 5
-          test_accuracy : false
-          preprocess_type : VGG_PREPROCESS
-   }
-}
-```
-• The .prototxt file is a Vitis™ AI configuration file that facilitates the uniform configuration management of model parameters. Please refer to the Vitis AI User Guide to learn more.
-• We can now deploy the quantized and compiled model on the target.
-
-# **Model Deployment**
-
-1. Download the resnet18_pt folder from host to target using scp with the following command:
-```
-[Docker] $ scp -r resnet18_pt root@[TARGET_IP_ADDRESS]:/usr/share/vitis_ai_library/models/
-```
-• The model will be located under the /usr/share/vitis_ai_library/models/ folder along with the other Vitis-AI model examples.
-      
-2. The vitis_ai_library_r3.0.0_images.tar.gz and vitis_ai_library_r3.0.0_video.tar.gz packages contain test images and videos that can be leveraged to evaluate our quantized model and other pre-built Vitis-AI Library examples on the target.
-1. Download the packages.
-```
-[Docker] $ cd /workspace
-[Docker] $ wget https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r3.0.0_images.tar.gz -O vitis_ai_library_r3.0.0_images.tar.gz
-[Docker] $ wget https://www.xilinx.com/bin/public/openDownload?filename=vitis_ai_library_r3.0.0_video.tar.gz -O vitis_ai_library_r3.0.0_video.tar.gz
-```
-2. SCP the files to the target.
-```
-[Docker] $ scp -r vitis_ai_library_r3.0.0_images.tar.gz root@[TARGET_IP_ADDRESS]:~/
-[Docker] $ scp -r vitis_ai_library_r3.0.0_video.tar.gz root@[TARGET_IP_ADDRESS]:~/
-```
-3. Untar the files on the target.
-```
-[Target] $ tar -xzvf vitis_ai_library_r3.0.0_images.tar.gz -C ~/Vitis-AI/examples/vai_library/
-[Target] $ tar -xzvf vitis_ai_library_r3.0.0_video.tar.gz -C ~/Vitis-AI/examples/vai_library/
-```
-Enter the directory of the sample and then compile it.
-```
-[Target] $ cd ~/Vitis-AI/vai_library/samples/classification
-[Target] $ ./build.sh
-```
-4. Execute the single-image test application.
-```
-[Target] $ ./test_jpeg_classification resnet18_pt ~/Vitis-AI/examples/vai_library/samples/classification/images/002.jpg
-If you wish to do so, you can copy the result.jpg file back to your host and review the output. OpenCV function calls have been used to overlay the predictions.
-```
-5. To run the video example, run the following command. To keep this simple we will use one of the Vitis AI video samples, but you should scp your own video clip to the target (webm / raw formats).
-```
-[Target] $ ./test_video_classification resnet18_pt ~/Vitis-AI/examples/vai_library/apps/seg_and_pose_detect/pose_960_540.avi -t 8
-```
-6. Users can run real time inference using a USB web camera connected to the target with the command below:
-```
-[Target] $ ./test_video_classification resnet18_pt 0 -t 8
-```
-• 0 corresponds to the first USB camera device node. If you have multiple USB cameras, the value is 1,2,3, etc. -t corresponds to the number of threads.
-• If you are uncertain, you can execute the following command to determine the device node for the camera connected to your target.
-```    
-[Target] $ lsusb
-```
-7. The output will be displayed on the connected monitor. Notice that the classifications are displayed frame-by-frame as an OpenCV overlay. The performance will be limited by the refresh rate of the display. Please see UG1354 for additional details.
-
-Setting up Webcam in Linux Environments will be usefull when setting the FPGA with our USB Webcam
-
-```
-$ sudo apt install v4l-utils
-$ v4l2-ctl –list-devices – should list all the webcam names 
-$ sudo apt install fswebcam – install all the webcam drivers
-$ fswebcam test.jpg  - to capture the image
-```
-Note: The above command defaults to 
-No input was specified, using the first.
-Adjusting resolution from 384x288 to 352x288.
-So in order to avoid the default config we need to specify the devices that we need to used and the the resolution along with no banner tag to remove the banner associated with the image
-
-```
-fswebcam \
->   -d /dev/video2 \
->   -r 1280x720 \
->   --no-banner \
->   test.jpg
-```
