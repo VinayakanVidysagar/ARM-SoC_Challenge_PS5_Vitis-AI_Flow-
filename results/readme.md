@@ -74,5 +74,8 @@ Performance Analysis
 After deploying, the evaluation of the system performance of the ZCU102 and the acceleration effect of the SCI model was verified by testing. This was also compared to other platform performance. The FPGA accelerated system processed an average of 67.72 frames/s with an average detection latency of 14,767 μs at frame level.
 At the IMX274 camera module, RAW10 image data was acquired through the MIPI FMC interface of the board during the test. FPGA process the data and output it to monitor via HDMI 2.0. The real-time detection results are presented in Figure 6, including lowlight enhancement effects. This comparison shows that the FPGA fully improved images under low-light (nighttime) conditions in the real-time detection system.
 
+![Comparison Table ](image.png)
+
+
 To measure its performance, the algorithm was implemented and tested on CPU, GPU, and proposed ZCU102 platform. This comparison regarded multiple parameters like the type of data processing, the image size, the frames per second (FPS), power consumption, energy efficiency, PSNR, and SSIM. Detection performance metrics for each platform are summarized in the document. This cross-platform code/table compares their Low-light image enhancement performance. Compared with CPU platform (Intel i7-10700), GPU platform (RTX 3060 (12GB VRAM)) has superior computational power and resource utilization, and is more suited for complex graphics and video data. With INT8 data, the ZCU102 platform is less energy-consuming and capable of edge computing. 
 
